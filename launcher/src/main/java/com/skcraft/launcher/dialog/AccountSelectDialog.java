@@ -14,6 +14,13 @@ import com.skcraft.launcher.swing.SwingHelper;
 import com.skcraft.launcher.util.SharedLocale;
 import com.skcraft.launcher.util.SwingExecutor;
 import lombok.RequiredArgsConstructor;
+import javax.swing.JOptionPane;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.BufferedReader;
+import java.io.FileReader;
+
 
 import javax.swing.*;
 import java.awt.*;
@@ -104,8 +111,31 @@ public class AccountSelectDialog extends JDialog {
 
 		addMicrosoftButton.addActionListener(ev -> attemptMicrosoftLogin());
 
-		offlineButton.addActionListener(ev ->
-				setResult(new OfflineSession(JOptionPane.showInputDialog("Please enter a username:", "username").toString())));
+		offlineButton.addActionListener(ev -> {
+		String fileName = "username.txt";
+		String storedUsername = "";
+    	try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
+        storedUsername = reader.readLine();
+    	} catch (IOException e) {
+        System.out.println("Error occurred while reading the username from file: " + e.getMessage());
+    	}
+
+		String username = JOptionPane.showInputDialog("Please enter a username:", storedUsername != null ? storedUsername : "");
+
+		if (username != null) {
+		String userInput = username.toString(); // Convert to string explicitly
+		setResult(new OfflineSession(username));
+
+		try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
+		writer.write(username);
+		//JOptionPane.showMessageDialog(null, "Username saved to file: " + fileName);
+		} catch (IOException e) {
+		//JOptionPane.showMessageDialog(null, "Error occurred while saving the username to a file.");
+		e.printStackTrace();
+		}
+		} else {
+		System.out.println("No username entered or dialog closed.");
+		}});
 
 		removeSelected.addActionListener(ev -> {
 			if (accountList.getSelectedValue() != null) {
